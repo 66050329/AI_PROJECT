@@ -1,0 +1,185 @@
+import time
+import base64
+from pathlib import Path
+import pandas as pd
+import streamlit as st
+
+from sentiment_service import calculate_app_statistics, classify_sentiment
+from ai_service import ask_dating_ai
+
+st.set_page_config(
+    page_title="Dating App Lifestyle Matcher",
+    page_icon="💘",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+)
+
+# ฟังก์ชันสำหรับอ่านและแปลงรูปภาพพื้นหลังเป็น Base64
+def get_bg_image():
+    path = Path(__file__).parent / "Gemini_Generated_Image_vmu55bvmu55bvmu5.jpg"
+    if path.exists():
+        return base64.b64encode(path.read_bytes()).decode()
+    return None
+
+BG_IMAGE = get_bg_image()
+
+# โค้ด CSS ปรับแต่งธีมชมพูพาสเทล ละมุนตา และแก้ไขสีตัวหนังสือในกล่องแชทให้ชัดเจน
+bg_css = f"""
+<style>
+.stApp {{
+  background-color: #fff5f7;
+  {f"background-image: linear-gradient(rgba(255, 245, 247, 0.85), rgba(255, 235, 240, 0.9)), url('data:image/png;base64,{BG_IMAGE}');" if BG_IMAGE else ""}
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: #4a3b40;
+}}
+
+header[data-testid="stHeader"] {{
+  background: transparent !important;
+}}
+[data-testid="stMain"] {{
+  background: transparent !important;
+}}
+
+h3 {{
+  color: #c73860;
+  font-weight: 700;
+  text-shadow: 0 2px 5px rgba(255, 182, 193, 0.4);
+}}
+
+/* กล่องแชทสีขาวทึบและตัวหนังสือสีเข้ม อ่านง่ายชัดเจน */
+div[data-testid="stChatMessage"] {{
+  background-color: #ffffff !important;
+  border: 1px solid rgba(255, 182, 193, 0.8);
+  border-radius: 20px;
+  padding: 14px;
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.25);
+}}
+
+div[data-testid="stChatMessage"] p, 
+div[data-testid="stChatMessage"] span, 
+div[data-testid="stChatMessage"] div {{
+  color: #3b2d32 !important;
+}}
+
+/* ช่องพิมพ์ข้อความด้านล่าง (Chat Input) โทนชมพู */
+div[data-testid="stChatInput"] {{
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 25px !important;
+  border: 2px solid #ffb3c6 !important;
+  padding: 4px;
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
+}}
+
+div[data-testid="stChatInput"] textarea {{
+  background-color: transparent !important;
+  color: #3b2d32 !important;
+  caret-color: #c73860;
+}}
+div[data-testid="stChatInput"] textarea::placeholder {{
+  color: #a89098 !important;
+}}
+
+div[data-testid="stChatInput"] button {{
+  color: #ffffff !important;
+  background-color: #ff6584 !important;
+  border-radius: 50% !important;
+}}
+div[data-testid="stChatInput"] button:hover {{
+  background-color: #d94e71 !important;
+}}
+</style>
+"""
+
+st.markdown(bg_css, unsafe_allow_html=True)
+
+@st.cache_data
+def load_data():
+    dfs = []
+    # โหลดไฟล์พาร์ทที่ 1 (Excel)
+    if Path("DatingAppReviewsDataset_p1.csv.xlsx").exists():
+        dfs.append(pd.read_excel("DatingAppReviewsDataset_p1.csv.xlsx"))
+        
+    # โหลดไฟล์พาร์ทที่ 2-5 (CSV)
+    for i in range(2, 6):
+        csv_path = f"DatingAppReviewsDataset_p{i}.csv"
+        if Path(csv_path).exists():
+            dfs.append(pd.read_csv(csv_path))
+            
+    if not dfs:
+        raise FileNotFoundError("ไม่พบไฟล์ข้อมูลพาร์ทย่อยในโปรเจกต์")
+        
+    df = pd.concat(dfs, ignore_index=True)
+    df['Sentiment'] = df['Rating'].apply(classify_sentiment)
+    return df
+
+try:
+    df = load_data()
+except Exception as e:
+    st.error(f"ไม่พบไฟล์ข้อมูลในโปรเจกต์: {e}")
+    st.stop()
+
+stats, processed_df = calculate_app_statistics(df)
+
+# หัวข้อแชทบอท
+st.markdown("""
+### 💘 Dating App Lifestyle Matcher Bot
+เล่าไลฟ์สไตล์ นิสัย หรือเป้าหมายในการหาคู่ของคุณให้ผมฟังได้เลยครับ แล้วผมจะวิเคราะห์จากรีวิวผู้ใช้งานจริง (Tinder, Bumble, Hinge)[cite: 9] มาแนะนำว่าคุณเหมาะกับแอปไหน พร้อมสรุปรีวิวให้ฟังครับ!
+""")
+
+# สร้างประวัติการสนทนาใน session_state
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "สวัสดีครับ! ลองพิมพ์เล่าสั้นๆ ได้เลยครับว่าตัวตนและไลฟ์สไตล์ของคุณเป็นแบบไหน และกำลังมองหาความสัมพันธ์แบบใด (เช่น 'เป็นคนทำงานยุ่งๆ ชอบคนจริงจัง ไม่ชอบปัดเจอคนเล่นๆ', 'ชอบแนวสายฝอ ไลฟ์สไตล์คาเฟ่ ปาร์ตี้', หรือ 'ชอบคุยเปิดประเด็นยาวๆ') แล้วผมจะเลือกแอปที่ใช่มาให้ครับ"}
+    ]
+
+# แสดงข้อความในแชททั้งหมด
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ช่องพิมพ์ข้อความแชทด้านล่าง
+if user_prompt := st.chat_input("พิมพ์เล่าไลฟ์สไตล์และความต้องการของคุณที่นี่..."):
+    st.session_state.messages.append({"role": "user", "content": user_prompt})
+    with st.chat_message("user"):
+        st.markdown(user_prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner("กำลังวิเคราะห์ไลฟ์สไตล์และเปรียบเทียบรีวิวจากทั้ง 3 แอป..."):
+            try:
+                sample_tinder = processed_df[processed_df["App"] == "Tinder"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Tinder"]))).tolist()
+                sample_bumble = processed_df[processed_df["App"] == "Bumble"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Bumble"]))).tolist()
+                sample_hinge = processed_df[processed_df["App"] == "Hinge"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Hinge"]))).tolist()
+                
+                all_samples = f"--- Tinder Reviews ---\n" + "\n".join(sample_tinder) + \
+                              f"\n\n--- Bumble Reviews ---\n" + "\n".join(sample_bumble) + \
+                              f"\n\n--- Hinge Reviews ---\n" + "\n".join(sample_hinge)
+
+                stats_summary = f"Tinder (Avg Rating: {stats['Tinder']['avg_rating']:.2f}, Pos: {stats['Tinder']['positive_pct']:.1f}%), " \
+                                f"Bumble (Avg Rating: {stats['Bumble']['avg_rating']:.2f}, Pos: {stats['Bumble']['positive_pct']:.1f}%), " \
+                                f"Hinge (Avg Rating: {stats['Hinge']['avg_rating']:.2f}, Pos: {stats['Hinge']['positive_pct']:.1f}%)"
+
+                matching_prompt = f"""
+ผู้ใช้งานพิมพ์เล่าไลฟ์สไตล์และความต้องการมาดังนี้: "{user_prompt}"
+
+ข้อมูลสถิติของแอปทั้ง 3 (Tinder, Bumble, Hinge)[cite: 9]: {stats_summary}
+
+ตัวอย่างรีวิวจากผู้ใช้งานจริง:
+{all_samples}
+
+คำชี้แจงในการตอบ:
+1. วิเคราะห์ว่าจากไลฟ์สไตล์และความต้องการของผู้ใช้ **แอปพลิเคชันใด (Tinder, Bumble หรือ Hinge)**[cite: 9] ที่เหมาะสมที่สุด พร้อมให้เหตุผลว่าทำไม
+2. สรุปภาพรวมรีวิว (จุดเด่นและข้อควรระวัง) ของแอปที่แนะนำนั้นจากข้อมูลรีวิวจริง
+3. แนะนำเสริมว่าถ้าอยากลองแอปอื่นในกลุ่ม มีข้อดีข้อเสียต่างกันอย่างไร
+4. ตอบเป็นภาษาไทยด้วยน้ำเสียงที่เป็นกันเองและน่าเชื่อถือ
+"""
+
+                response_text = ask_dating_ai(matching_prompt, "All Apps (Tinder, Bumble, Hinge)", {"total_reviews": len(df), "avg_rating": 3.0, "positive_pct": 45, "neutral_pct": 10, "negative_pct": 45, "total_thumbs": 1000}, all_samples)
+                
+                st.markdown(response_text)
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
+            except Exception as e:
+                err_msg = f"ขออภัยครับ เกิดข้อผิดพลาดในการประมวลผล: {e} (แนะนำให้ลองใหม่อีกครั้ง)"
+                st.error(err_msg)
+                st.session_state.messages.append({"role": "assistant", "content": err_msg})
