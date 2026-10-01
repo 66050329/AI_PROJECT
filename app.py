@@ -125,7 +125,7 @@ stats, processed_df = calculate_app_statistics(df)
 # หัวข้อแชทบอท
 st.markdown("""
 ### 💘 Dating App Lifestyle Matcher Bot
-เล่าไลฟ์สไตล์ นิสัย หรือเป้าหมายในการหาคู่ของคุณให้ผมฟังได้เลยครับ แล้วผมจะวิเคราะห์จากรีวิวผู้ใช้งานจริง (Tinder, Bumble, Hinge)[cite: 9] มาแนะนำว่าคุณเหมาะกับแอปไหน พร้อมสรุปรีวิวให้ฟังครับ!
+เล่าไลฟ์สไตล์ นิสัย หรือเป้าหมายในการหาคู่ของคุณให้ผมฟังได้เลยครับ แล้วผมจะวิเคราะห์จากรีวิวผู้ใช้งานจริง (Tinder, Bumble, Hinge) มาแนะนำว่าคุณเหมาะกับแอปไหน พร้อมสรุปรีวิวให้ฟังครับ!
 """)
 
 # สร้างประวัติการสนทนาใน session_state
@@ -148,28 +148,28 @@ if user_prompt := st.chat_input("พิมพ์เล่าไลฟ์สไ�
     with st.chat_message("assistant"):
         with st.spinner("กำลังวิเคราะห์ไลฟ์สไตล์และเปรียบเทียบรีวิวจากทั้ง 3 แอป..."):
             try:
-                sample_tinder = processed_df[processed_df["App"] == "Tinder"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Tinder"]))).tolist()
-                sample_bumble = processed_df[processed_df["App"] == "Bumble"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Bumble"]))).tolist()
-                sample_hinge = processed_df[processed_df["App"] == "Hinge"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Hinge"]))).tolist()
+                sample_tinder = processed_df[processed_df["App"] == "Tinder"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Tinder"]))).tolist() if len(processed_df[processed_df["App"] == "Tinder"]) > 0 else []
+                sample_bumble = processed_df[processed_df["App"] == "Bumble"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Bumble"]))).tolist() if len(processed_df[processed_df["App"] == "Bumble"]) > 0 else []
+                sample_hinge = processed_df[processed_df["App"] == "Hinge"]["Review"].dropna().sample(min(5, len(processed_df[processed_df["App"] == "Hinge"]))).tolist() if len(processed_df[processed_df["App"] == "Hinge"]) > 0 else []
                 
                 all_samples = f"--- Tinder Reviews ---\n" + "\n".join(sample_tinder) + \
                               f"\n\n--- Bumble Reviews ---\n" + "\n".join(sample_bumble) + \
                               f"\n\n--- Hinge Reviews ---\n" + "\n".join(sample_hinge)
 
-                stats_summary = f"Tinder (Avg Rating: {stats['Tinder']['avg_rating']:.2f}, Pos: {stats['Tinder']['positive_pct']:.1f}%), " \
-                                f"Bumble (Avg Rating: {stats['Bumble']['avg_rating']:.2f}, Pos: {stats['Bumble']['positive_pct']:.1f}%), " \
-                                f"Hinge (Avg Rating: {stats['Hinge']['avg_rating']:.2f}, Pos: {stats['Hinge']['positive_pct']:.1f}%)"
+                stats_summary = f"Tinder (Avg Rating: {stats.get('Tinder', {}).get('avg_rating', 0):.2f}, Pos: {stats.get('Tinder', {}).get('positive_pct', 0):.1f}%), " \
+                                f"Bumble (Avg Rating: {stats.get('Bumble', {}).get('avg_rating', 0):.2f}, Pos: {stats.get('Bumble', {}).get('positive_pct', 0):.1f}%), " \
+                                f"Hinge (Avg Rating: {stats.get('Hinge', {}).get('avg_rating', 0):.2f}, Pos: {stats.get('Hinge', {}).get('positive_pct', 0):.1f}%)"
 
                 matching_prompt = f"""
 ผู้ใช้งานพิมพ์เล่าไลฟ์สไตล์และความต้องการมาดังนี้: "{user_prompt}"
 
-ข้อมูลสถิติของแอปทั้ง 3 (Tinder, Bumble, Hinge)[cite: 9]: {stats_summary}
+ข้อมูลสถิติของแอปทั้ง 3 (Tinder, Bumble, Hinge): {stats_summary}
 
 ตัวอย่างรีวิวจากผู้ใช้งานจริง:
 {all_samples}
 
 คำชี้แจงในการตอบ:
-1. วิเคราะห์ว่าจากไลฟ์สไตล์และความต้องการของผู้ใช้ **แอปพลิเคชันใด (Tinder, Bumble หรือ Hinge)**[cite: 9] ที่เหมาะสมที่สุด พร้อมให้เหตุผลว่าทำไม
+1. วิเคราะห์ว่าจากไลฟ์สไตล์และความต้องการของผู้ใช้ **แอปพลิเคชันใด (Tinder, Bumble หรือ Hinge)** ที่เหมาะสมที่สุด พร้อมให้เหตุผลว่าทำไม
 2. สรุปภาพรวมรีวิว (จุดเด่นและข้อควรระวัง) ของแอปที่แนะนำนั้นจากข้อมูลรีวิวจริง
 3. แนะนำเสริมว่าถ้าอยากลองแอปอื่นในกลุ่ม มีข้อดีข้อเสียต่างกันอย่างไร
 4. ตอบเป็นภาษาไทยด้วยน้ำเสียงที่เป็นกันเองและน่าเชื่อถือ

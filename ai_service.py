@@ -1,16 +1,22 @@
 import os, time
 import pandas as pd
+import streamlit as st
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-load_dotenv()
-KEY = os.getenv("GEMINI_API_KEY")
+# ดึง API Key จาก Streamlit Secrets (กรณีรันบนคลาวด์) ถ้าไม่มีค่อยหาจาก .env (กรณีรันบนเครื่อง)
+try:
+    KEY = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    load_dotenv()
+    KEY = os.getenv("GEMINI_API_KEY")
+
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 def ask_dating_ai(question, app_name, stats, sample_reviews):
     if not KEY:
-        raise ValueError("Missing GEMINI_API_KEY in .env")
+        raise ValueError("Missing GEMINI_API_KEY. Please configure it in Streamlit Secrets or .env")
     
     context = f"""Dating App Analytics Context:
 App: {app_name}
