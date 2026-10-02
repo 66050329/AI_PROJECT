@@ -52,6 +52,22 @@ h3, h2 {{
   text-shadow: 0 2px 5px rgba(255, 182, 193, 0.4);
 }}
 
+/* ปรับสีตัวหนังสือในแท็บ (Tabs) ให้มองเห็นชัดเจนทั้งตอนเลือกและยังไม่เลือก */
+.stTabs [data-baseweb="tab"] {{
+  color: #8c5865 !important;
+  font-weight: 600;
+}}
+.stTabs [data-baseweb="tab"] p {{
+  color: #8c5865 !important;
+}}
+.stTabs [data-baseweb="tab"][aria-selected="true"] {{
+  color: #c73860 !important;
+  border-bottom-color: #c73860 !important;
+}}
+.stTabs [data-baseweb="tab"][aria-selected="true"] p {{
+  color: #c73860 !important;
+}}
+
 div[data-testid="stChatMessage"] {{
   background-color: #ffffff !important;
   border: 1px solid rgba(255, 182, 193, 0.8);
@@ -66,7 +82,6 @@ div[data-testid="stChatMessage"] div {{
   color: #3b2d32 !important;
 }}
 
-/* ช่องพิมพ์ข้อความ: ปรับสีตัวหนังสือตอนพิมพ์ให้เป็นสีเดียวกับ Placeholder */
 div[data-testid="stChatInput"] {{
   background-color: #ffffff !important;
   border-radius: 25px !important;
