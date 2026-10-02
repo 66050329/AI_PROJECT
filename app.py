@@ -66,7 +66,7 @@ div[data-testid="stChatMessage"] div {{
   color: #3b2d32 !important;
 }}
 
-/* ช่องพิมพ์ข้อความ (Chat Input) พื้นหลังสีขาว ตัวหนังสือสีเข้มคมชัด */
+/* ช่องพิมพ์ข้อความ: ปรับสีตัวหนังสือตอนพิมพ์ให้เป็นสีเดียวกับ Placeholder */
 div[data-testid="stChatInput"] {{
   background-color: #ffffff !important;
   border-radius: 25px !important;
@@ -77,15 +77,15 @@ div[data-testid="stChatInput"] {{
 
 div[data-testid="stChatInput"] textarea {{
   background-color: transparent !important;
-  color: #2b1d22 !important;
-  -webkit-text-fill-color: #2b1d22 !important;
+  color: #8c6870 !important;
+  -webkit-text-fill-color: #8c6870 !important;
   caret-color: #c73860;
   font-weight: 500;
 }}
 
 div[data-testid="stChatInput"] textarea::placeholder {{
-  color: #b898a0 !important;
-  -webkit-text-fill-color: #b898a0 !important;
+  color: #8c6870 !important;
+  -webkit-text-fill-color: #8c6870 !important;
 }}
 
 div[data-testid="stChatInput"] button {{
