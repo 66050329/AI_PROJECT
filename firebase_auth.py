@@ -5,9 +5,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ปรับวิธีดึงค่าให้ปลอดภัยและไม่พังทันทีถ้าหาไม่เจอ
+API_KEY = ""
 try:
-    API_KEY = st.secrets["FIREBASE_API_KEY"].strip()
+    if "FIREBASE_API_KEY" in st.secrets:
+        API_KEY = st.secrets["FIREBASE_API_KEY"].strip()
 except Exception:
+    pass
+
+if not API_KEY:
     API_KEY = os.getenv("FIREBASE_API_KEY", "").strip()
 
 BASE_URL = "https://identitytoolkit.googleapis.com/v1/accounts"
@@ -26,7 +32,7 @@ ERROR_MESSAGES = {
 
 def _ensure_key():
     if not API_KEY:
-        raise RuntimeError("ไม่พบ FIREBASE_API_KEY ใน Environment/Streamlit Secrets")
+        raise RuntimeError("ไม่พบ FIREBASE_API_KEY กรุณาตรวจสอบการตั้งค่า Secrets บน Streamlit Cloud อีกครั้ง")
 
 def _post(action, email, password):
     _ensure_key()
