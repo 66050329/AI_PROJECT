@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-# ดึง API Key จาก Streamlit Secrets (กรณีรันบนคลาวด์) ถ้าไม่มีค่อยหาจาก .env (กรณีรันบนเครื่อง)
 try:
     KEY = st.secrets["GEMINI_API_KEY"]
 except Exception:
