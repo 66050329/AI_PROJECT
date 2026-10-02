@@ -52,7 +52,12 @@ h3, h2 {{
   text-shadow: 0 2px 5px rgba(255, 182, 193, 0.4);
 }}
 
-/* ปรับสีตัวหนังสือในแท็บ (Tabs) ให้มองเห็นชัดเจนทั้งตอนเลือกและยังไม่เลือก */
+/* บังคับสีตัวหนังสือหัวข้อฟอร์มและแท็บทั้งหมดให้เป็นสีเข้มชัดเจน */
+label, .stTextInput label, p {{
+  color: #5c3d45 !important;
+  font-weight: 500;
+}}
+
 .stTabs [data-baseweb="tab"] {{
   color: #8c5865 !important;
   font-weight: 600;
