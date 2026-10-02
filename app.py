@@ -66,21 +66,26 @@ div[data-testid="stChatMessage"] div {{
   color: #3b2d32 !important;
 }}
 
+/* ช่องพิมพ์ข้อความ (Chat Input) พื้นหลังสีขาว ตัวหนังสือสีเข้มคมชัด */
 div[data-testid="stChatInput"] {{
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: #ffffff !important;
   border-radius: 25px !important;
   border: 2px solid #ffb3c6 !important;
   padding: 4px;
-  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
 }}
 
 div[data-testid="stChatInput"] textarea {{
   background-color: transparent !important;
-  color: #3b2d32 !important;
+  color: #2b1d22 !important;
+  -webkit-text-fill-color: #2b1d22 !important;
   caret-color: #c73860;
+  font-weight: 500;
 }}
+
 div[data-testid="stChatInput"] textarea::placeholder {{
-  color: #a89098 !important;
+  color: #b898a0 !important;
+  -webkit-text-fill-color: #b898a0 !important;
 }}
 
 div[data-testid="stChatInput"] button {{
@@ -132,13 +137,6 @@ if not st.session_state.authenticated:
                 
     st.stop()
 
-# หน้าจอแชทหลักหลังจากล็อกอิน
-st.sidebar.success(f"เข้าสู่ระบบด้วย: {st.session_state.user_email}")
-if st.sidebar.button("ออกจากระบบ"):
-    st.session_state.authenticated = False
-    st.session_state.user_email = ""
-    st.rerun()
-
 @st.cache_data
 def load_data():
     dfs = []
@@ -156,13 +154,20 @@ def load_data():
     df['Sentiment'] = df['Rating'].apply(classify_sentiment)
     return df
 
-try:
-    df = load_data()
-except Exception as e:
-    st.error(f"ไม่พบไฟล์ข้อมูลในโปรเจกต์: {e}")
-    st.stop()
+with st.spinner("กำลังเตรียมระบบวิเคราะห์ข้อมูลรีวิว..."):
+    try:
+        df = load_data()
+    except Exception as e:
+        st.error(f"ไม่พบไฟล์ข้อมูลในโปรเจกต์: {e}")
+        st.stop()
 
 stats, processed_df = calculate_app_statistics(df)
+
+st.sidebar.success(f"เข้าสู่ระบบด้วย: {st.session_state.user_email}")
+if st.sidebar.button("ออกจากระบบ"):
+    st.session_state.authenticated = False
+    st.session_state.user_email = ""
+    st.rerun()
 
 st.markdown("""
 ### 💘 Dating App Lifestyle Matcher Bot
