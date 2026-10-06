@@ -121,7 +121,7 @@ div[data-testid="stChatInput"] button:hover {{
 
 st.markdown(bg_css, unsafe_allow_html=True)
 
-# หน้าจอเข้าสู่ระบบ / สมัครสมาชิก
+# 1. หน้าจอเข้าสู่ระบบ / สมัครสมาชิก (แสดงผลทันทีโดยไม่มีการโหลดข้อมูล)
 if not st.session_state.authenticated:
     st.markdown("<h2 style='text-align: center;'>💘 Dating App Matcher - เข้าสู่ระบบ</h2>", unsafe_allow_html=True)
     
@@ -157,6 +157,7 @@ if not st.session_state.authenticated:
                 
     st.stop()
 
+# 2. ฟังก์ชันโหลดข้อมูล (จะทำงานเฉพาะเมื่อผู้ใช้ล็อกอินผ่านแล้วเท่านั้น)
 @st.cache_data
 def load_data():
     dfs = []
